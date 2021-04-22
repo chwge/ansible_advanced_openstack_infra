@@ -1,0 +1,50 @@
+---
+
+- when: openstack_servers is not defined
+  name: Run when openstack_servers is not defined
+  debug:
+    msg: Skipped when openstack_servers is not defined
+
+- when: openstack_servers is defined
+  name: Manage openstack Servers
+  os_server:
+    cloud:           "{{ __server.cloud | default('openstack') }}"
+    name:            "{{ __server.instance_name }}"
+    image:           "{{ __server.image }}"
+    key_name:         ansible_ssh_key
+    flavor:           m1.small
+    security_groups:  "{{ __server.security_group_name }}"
+    delete_fip: yes
+    wait: no
+    nics:
+      - net-name: int_network
+    meta:            "{{ __server.meta }}"
+    userdata: |
+      #!/bin/bash
+      curl -o /tmp/openstack.pub http://www.opentlc.com/download/ansible_bootcamp/openstack_keys/openstack.pub
+      cat /tmp/openstack.pub >> /home/cloud-user/.ssh/authorized_keys
+  loop: "{{ openstack_servers }}"
+  loop_control:
+    loop_var: __server
+
+  tags:
+    - openstack-servers
+
+- when: openstack_servers is defined
+  name: Manage openstack Servers floating ip
+  os_floating_ip:
+    cloud:           "{{ __server.cloud | default('openstack') }}"
+    state: present
+    reuse: yes
+    server:          "{{ __server.instance_name }}"
+    network: ext_network
+    wait: true
+    timeout: 200
+  loop: "{{ openstack_servers }}"
+  loop_control:
+    loop_var: __server
+
+  tags:
+    - openstack-servers
+
+...

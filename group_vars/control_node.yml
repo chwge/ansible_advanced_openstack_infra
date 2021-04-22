@@ -28,6 +28,14 @@ openstack_flavors:
     ram: 2048
     disk: 20
 
+  - name: m1.small
+    cloud: "{{ openstack_cloud }}"
+    state: present
+    vcpus: 1
+    ram: 1024
+    disk: 10
+
+
 openstack_keypair:
 
   name: "{{ provisioning_ssh_key }}"
@@ -79,22 +87,26 @@ openstack_servers:
     deployment: dev
     security_group_name: apps
     image: "{{ _server_image | default('rhel-7.6') }}"
+    meta: "group=app_servers, deployment_name=QA"
 
   - instance_name: app2
     group: app_servers
     deployment: dev
     security_group_name: apps
     image: "{{ _server_image | default('rhel-7.6') }}"
+    meta: "group=app_servers, deployment_name=dev"
 
   - instance_name: db
     group: database_servers
     deployment: dev
     security_group_name: db
     image: "{{ _server_image | default('rhel-7.6') }}"
+    meta: "group=database_servers, deployment_name=dev"
 
   - instance_name: frontend1
     group: load_balancers
     deployment: dev
     security_group_name: frontend
     image: "{{ _server_image | default('rhel-7.6') }}"
+    meta: "group=load_balancers, deployment_name=dev"
 ...
